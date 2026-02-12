@@ -4,7 +4,7 @@ from app.auth import hash_password, verify_password, create_access_token
 from app.users_db import users_db
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends
-
+from fastapi import Form
 
 
 router = APIRouter(prefix="", tags=["Auth"])
@@ -18,20 +18,18 @@ def signup(user: UserCreate):
     return {"message": "User created successfully"}
 
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_email = form_data.username
-    user_password = form_data.password
-
-    hashed = users_db.get(user_email)
-
-    if not hashed or not verify_password(user_password, hashed):
+def login(
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    hashed = users_db.get(username)
+    if not hashed or not verify_password(password, hashed):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
         )
 
-    token = create_access_token({"sub": user_email})
-
+    token = create_access_token({"sub": username})
     return {
         "access_token": token,
         "token_type": "bearer"
