@@ -1,16 +1,31 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends
+from fastapi import APIRouter, UploadFile, File, Form, Depends, Header, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.pdf_generator import generate_pdf
 from app.auth import verify_token
-from fastapi.security import OAuth2PasswordBearer
 import shutil
 
 router = APIRouter(prefix="", tags=["PDF"])
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    return verify_token(token)
+# ✅ Manual Bearer Token Verification
+def get_current_user(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+    except:
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+
+    email = verify_token(token)
+
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    return email
+
 
 @router.post("/download-report")
 async def download_report(
