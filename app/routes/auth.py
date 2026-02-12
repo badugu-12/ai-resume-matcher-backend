@@ -19,15 +19,18 @@ def signup(user: UserCreate):
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    hashed = users_db.get(form_data.username)
+    user_email = form_data.username
+    user_password = form_data.password
 
-    if not hashed or not verify_password(form_data.password, hashed):
+    hashed = users_db.get(user_email)
+
+    if not hashed or not verify_password(user_password, hashed):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
         )
 
-    token = create_access_token({"sub": form_data.username})
+    token = create_access_token({"sub": user_email})
 
     return {
         "access_token": token,
