@@ -9,11 +9,15 @@ app = FastAPI(title="AI Resume Job Matcher")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # allow all for now
+    allow_origins=[
+        "http://localhost:3000",
+        "https://ai-resume-matcher-frontend-six.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # 🔥 THIS IS THE KEY
